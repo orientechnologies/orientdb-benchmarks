@@ -4,11 +4,16 @@ import com.orientechnologies.common.io.OFileUtils;
 import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.orient.core.OConstants;
 import com.orientechnologies.orient.core.Orient;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.record.impl.ODocument;
 import junit.framework.TestCase;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
@@ -52,7 +57,7 @@ public abstract class AbstractBenchmark<T> extends TestCase {
     this.name = iTestName;
     this.data = new Data(iTotalItems);
 
-    out.printf("\nORIENTDB BENCHMARK SUITE [OrientDB v.%s - CPUs: %d]", name, OConstants.getVersion(), Runtime.getRuntime()
+    out.printf("\nORIENTDB BENCHMARK SUITE [OrientDB v.%s - CPUs: %d]", OConstants.getVersion(), Runtime.getRuntime()
         .availableProcessors());
     out.printf("\nSTARTED TEST: %s\n", name);
 
@@ -114,6 +119,7 @@ public abstract class AbstractBenchmark<T> extends TestCase {
     data.elapsed = data.endTime - data.beginTime;
 
     dump();
+    export();
 
     return data.elapsed;
   }
@@ -199,6 +205,74 @@ public abstract class AbstractBenchmark<T> extends TestCase {
     out.printf("\n+-----------------------------------+------------------------------------+");
   }
 
+  protected void export() {
+    final ODatabaseDocumentTx database = new ODatabaseDocumentTx("plocal:./export/benchmark");
+
+    try {
+      out.printf("\nEXPORTING TEST RESULT TO DATABASE: %s...", database);
+
+      if (database.exists())
+        database.open("admin", "admin");
+      else
+        database.create();
+
+      database.getMetadata().getSchema().getOrCreateClass("Result");
+      database.getMetadata().getSchema().getOrCreateClass("Step");
+      database.getMetadata().getSchema().getOrCreateClass("RamRecording");
+
+      final ODocument result = new ODocument("Result");
+      result.field("name", name);
+      result.field("date", new Date());
+      result.field("elapsed", data.elapsed);
+      result.field("totalItems", data.totalItems);
+      result.field("speed", ((float) data.totalItems * 1000 / data.elapsed));
+      result.field("cpus", Runtime.getRuntime().availableProcessors());
+      result.field("engineVersion", OConstants.getVersion());
+
+      if (!steps.isEmpty()) {
+        final List<String> ordered = new ArrayList<String>(steps.keySet());
+        Collections.sort(ordered);
+
+        final Map<String, ODocument> stepsMap = new HashMap<String, ODocument>();
+        result.field("steps", stepsMap, OType.EMBEDDEDMAP);
+
+        for (String stepName : ordered) {
+          final Data step = steps.get(stepName);
+
+          synchronized (data) {
+            final ODocument stepResult = new ODocument("Step");
+
+            stepResult.field("name", stepName);
+            stepResult.field("elapsed", step.elapsed);
+            stepResult.field("totalItems", step.totalItems);
+            stepResult.field("speed", ((float) step.totalItems * 1000 / step.elapsed));
+
+            final List<ODocument> ramRecordings = new ArrayList<ODocument>();
+
+            for (long[] metric : step.ramMetrics) {
+              final ODocument ramRecording = new ODocument("RamRecording");
+
+              ramRecording.field("date", new Date(metric[0]));
+              ramRecording.field("total", metric[1]);
+              ramRecording.field("free", metric[2]);
+              ramRecording.field("max", metric[3]);
+
+              ramRecordings.add(ramRecording);
+            }
+
+            stepResult.field("ramRecordings", ramRecordings, OType.EMBEDDEDLIST);
+
+            stepsMap.put(stepName, stepResult);
+          }
+        }
+      }
+
+      result.save();
+    } finally {
+      database.close();
+    }
+  }
+
   protected String getURL() {
     return System.getProperty("url", "plocal:./databases/" + name);
   }
@@ -212,8 +286,11 @@ public abstract class AbstractBenchmark<T> extends TestCase {
       return;
 
     final Data data = steps.get(lastStepName);
-    data.ramMetrics.add(new long[] { System.currentTimeMillis(), Runtime.getRuntime().totalMemory(),
-        Runtime.getRuntime().freeMemory(), Runtime.getRuntime().maxMemory() });
+
+    synchronized (data) {
+      data.ramMetrics.add(new long[] { System.currentTimeMillis(), Runtime.getRuntime().totalMemory(),
+          Runtime.getRuntime().freeMemory(), Runtime.getRuntime().maxMemory() });
+    }
   }
 
   protected long getTotalItems() {
