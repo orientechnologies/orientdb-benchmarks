@@ -2,6 +2,7 @@ package com.orientechnologies.benchmarks.base;
 
 import com.orientechnologies.common.io.OFileUtils;
 import com.orientechnologies.common.log.OLogManager;
+import com.orientechnologies.orient.core.OConstants;
 import com.orientechnologies.orient.core.Orient;
 import junit.framework.TestCase;
 
@@ -51,6 +52,8 @@ public abstract class AbstractBenchmark<T> extends TestCase {
     this.name = iTestName;
     this.data = new Data(iTotalItems);
 
+    out.printf("\nORIENTDB BENCHMARK SUITE [OrientDB v.%s - CPUs: %d]", name, OConstants.getVersion(), Runtime.getRuntime()
+        .availableProcessors());
     out.printf("\nSTARTED TEST: %s\n", name);
 
     Orient.instance().scheduleTask(new TimerTask() {
@@ -176,7 +179,8 @@ public abstract class AbstractBenchmark<T> extends TestCase {
     out.printf("\n+-----------------------------------+------------------------------------+");
     out.printf("\n| Elapsed (ms)....: %-,15d | Speed (item/sec): %-,16.2f |", data.elapsed,
         ((float) data.totalItems * 1000 / data.elapsed));
-    out.printf("\n| CPUs............: %-15d |                                    |", Runtime.getRuntime().availableProcessors());
+    out.printf("\n| CPUs............: %-15d | OrientDB v.......: %-16s |", Runtime.getRuntime().availableProcessors(),
+        OConstants.getVersion());
     if (!steps.isEmpty()) {
       final List<String> ordered = new ArrayList<String>(steps.keySet());
       Collections.sort(ordered);
@@ -212,7 +216,7 @@ public abstract class AbstractBenchmark<T> extends TestCase {
         Runtime.getRuntime().freeMemory(), Runtime.getRuntime().maxMemory() });
   }
 
-  protected long getTotalItems(){
+  protected long getTotalItems() {
     return data.totalItems;
   }
 }
