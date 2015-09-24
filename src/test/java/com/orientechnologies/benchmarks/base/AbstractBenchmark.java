@@ -1,14 +1,5 @@
 package com.orientechnologies.benchmarks.base;
 
-import com.orientechnologies.common.io.OFileUtils;
-import com.orientechnologies.common.log.OLogManager;
-import com.orientechnologies.orient.core.OConstants;
-import com.orientechnologies.orient.core.Orient;
-import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
-import com.orientechnologies.orient.core.metadata.schema.OType;
-import com.orientechnologies.orient.core.record.impl.ODocument;
-import junit.framework.TestCase;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+
+import junit.framework.TestCase;
+
+import com.orientechnologies.common.io.OFileUtils;
+import com.orientechnologies.common.log.OLogManager;
+import com.orientechnologies.orient.core.OConstants;
+import com.orientechnologies.orient.core.Orient;
+import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
+import com.orientechnologies.orient.core.metadata.schema.OType;
+import com.orientechnologies.orient.core.record.impl.ODocument;
 
 /**
  * @author Luca Garulli
@@ -228,6 +229,11 @@ public abstract class AbstractBenchmark<T> extends TestCase {
       result.field("speed", ((float) data.totalItems * 1000 / data.elapsed));
       result.field("cpus", Runtime.getRuntime().availableProcessors());
       result.field("engineVersion", OConstants.getVersion());
+      result.field("jvmVendor", System.getProperty("java.vendor"));
+      result.field("jvmVersion", System.getProperty("java.version"));
+      result.field("osName", System.getProperty("os.name"));
+      result.field("osArch", System.getProperty("os.arch"));
+      result.field("osVersion", System.getProperty("os.version"));
 
       if (!steps.isEmpty()) {
         final List<String> ordered = new ArrayList<String>(steps.keySet());
