@@ -1,17 +1,5 @@
 package com.orientechnologies.benchmarks.base;
 
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
-
-import junit.framework.TestCase;
-
 import com.orientechnologies.common.io.OFileUtils;
 import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.orient.core.OConstants;
@@ -19,6 +7,11 @@ import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
+import junit.framework.TestCase;
+
+import java.io.PrintStream;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Luca Garulli
@@ -293,9 +286,11 @@ public abstract class AbstractBenchmark<T> extends TestCase {
 
     final Data data = steps.get(lastStepName);
 
-    synchronized (data) {
-      data.ramMetrics.add(new long[] { System.currentTimeMillis(), Runtime.getRuntime().totalMemory(),
-          Runtime.getRuntime().freeMemory(), Runtime.getRuntime().maxMemory() });
+    if(data!=null) {
+      synchronized (data) {
+        data.ramMetrics.add(new long[] { System.currentTimeMillis(), Runtime.getRuntime().totalMemory(),
+            Runtime.getRuntime().freeMemory(), Runtime.getRuntime().maxMemory() });
+      }
     }
   }
 
