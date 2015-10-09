@@ -10,7 +10,13 @@ import com.orientechnologies.orient.core.record.impl.ODocument;
 import junit.framework.TestCase;
 
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -168,9 +174,11 @@ public abstract class AbstractBenchmark<T> extends TestCase {
   }
 
   protected String getRAMStatistics() {
-    return "total=" + OFileUtils.getSizeAsString(Runtime.getRuntime().totalMemory()) + " free="
-        + OFileUtils.getSizeAsString(Runtime.getRuntime().freeMemory()) + " max="
-        + OFileUtils.getSizeAsString(Runtime.getRuntime().maxMemory());
+    final long tot = Runtime.getRuntime().totalMemory();
+    final long free = Runtime.getRuntime().freeMemory();
+
+    return "used=" + OFileUtils.getSizeAsString(tot - free) + " total=" + OFileUtils.getSizeAsString(tot) + " free="
+        + OFileUtils.getSizeAsString(free) + " max=" + OFileUtils.getSizeAsString(Runtime.getRuntime().maxMemory());
   }
 
   protected void dump() {
@@ -179,7 +187,7 @@ public abstract class AbstractBenchmark<T> extends TestCase {
     out.printf("\n+-----------------------------------+------------------------------------+");
     out.printf("\n| Elapsed (ms)....: %-,15d | Speed (item/sec): %-,16.2f |", data.elapsed,
         ((float) data.totalItems * 1000 / data.elapsed));
-    out.printf("\n| CPUs............: %-15d | OrientDB v.......: %-16s |", Runtime.getRuntime().availableProcessors(),
+    out.printf("\n| CPUs............: %-15d | OrientDB v.......: %-15s |", Runtime.getRuntime().availableProcessors(),
         OConstants.getVersion());
     if (!steps.isEmpty()) {
       final List<String> ordered = new ArrayList<String>(steps.keySet());
@@ -252,6 +260,7 @@ public abstract class AbstractBenchmark<T> extends TestCase {
               final ODocument ramRecording = new ODocument("RamRecording");
 
               ramRecording.field("date", new Date(metric[0]));
+              ramRecording.field("used", metric[0]);
               ramRecording.field("total", metric[1]);
               ramRecording.field("free", metric[2]);
               ramRecording.field("max", metric[3]);
@@ -286,10 +295,12 @@ public abstract class AbstractBenchmark<T> extends TestCase {
 
     final Data data = steps.get(lastStepName);
 
-    if(data!=null) {
+    if (data != null) {
       synchronized (data) {
-        data.ramMetrics.add(new long[] { System.currentTimeMillis(), Runtime.getRuntime().totalMemory(),
-            Runtime.getRuntime().freeMemory(), Runtime.getRuntime().maxMemory() });
+        final long tot = Runtime.getRuntime().totalMemory();
+        final long free = Runtime.getRuntime().freeMemory();
+
+        data.ramMetrics.add(new long[] { System.currentTimeMillis(), (tot - free), tot, free, Runtime.getRuntime().maxMemory() });
       }
     }
   }
