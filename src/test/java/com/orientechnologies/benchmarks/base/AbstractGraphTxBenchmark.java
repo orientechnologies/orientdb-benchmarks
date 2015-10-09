@@ -1,25 +1,25 @@
 package com.orientechnologies.benchmarks.base;
 
-import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
+import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 
 /**
  * @author Luca Garulli
  */
-public class GraphNoTxAbstractBenchmark extends AbstractBenchmark<OrientGraphNoTx> {
-  private OrientGraphNoTx graph;
+public class AbstractGraphTxBenchmark extends AbstractBenchmark<OrientGraph> {
+  private OrientGraph graph;
 
-  protected GraphNoTxAbstractBenchmark(final String iTestName, final long iTotalItems) {
+  protected AbstractGraphTxBenchmark(final String iTestName, final long iTotalItems) {
     super(iTestName, iTotalItems);
   }
 
-  public GraphNoTxAbstractBenchmark(final String iTestName) {
+  public AbstractGraphTxBenchmark(final String iTestName) {
     super(iTestName);
   }
 
   @Override
   protected void runInMultiThread(final int iThreadId, final long iThreadFirst, final long iThreadLast,
-      final ThreadOperation<OrientGraphNoTx> iThreadOperation) {
-    final OrientGraphNoTx graph = openGraph();
+      final AbstractBenchmark.ThreadOperation<OrientGraph> iThreadOperation) {
+    final OrientGraph graph = createGraph();
     try {
       iThreadOperation.execute(graph, iThreadId, iThreadFirst, iThreadLast);
     } finally {
@@ -39,18 +39,18 @@ public class GraphNoTxAbstractBenchmark extends AbstractBenchmark<OrientGraphNoT
       graph.drop();
   }
 
-  protected OrientGraphNoTx createGraph() {
+  protected OrientGraph createGraph() {
     if (graph != null)
       throw new IllegalStateException("database already created");
 
-    graph = new OrientGraphNoTx(getURL());
+    graph = new OrientGraph(getURL());
     graph.drop();
 
-    graph = new OrientGraphNoTx(getURL());
+    graph = new OrientGraph(getURL());
     return graph;
   }
 
-  protected OrientGraphNoTx openGraph() {
-    return new OrientGraphNoTx(getURL());
+  protected OrientGraph openGraph() {
+    return new OrientGraph(getURL());
   }
 }

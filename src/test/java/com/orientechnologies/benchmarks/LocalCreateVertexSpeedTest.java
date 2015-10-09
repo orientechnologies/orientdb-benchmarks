@@ -19,12 +19,12 @@
  */
 package com.orientechnologies.benchmarks;
 
-import com.orientechnologies.benchmarks.base.GraphNoTxAbstractBenchmark;
+import com.orientechnologies.benchmarks.base.AbstractGraphNoTxBenchmark;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OClassImpl;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 
-public class LocalCreateVertexSpeedTest extends GraphNoTxAbstractBenchmark {
+public class LocalCreateVertexSpeedTest extends AbstractGraphNoTxBenchmark {
   public LocalCreateVertexSpeedTest() {
     super("Vertices");
   }

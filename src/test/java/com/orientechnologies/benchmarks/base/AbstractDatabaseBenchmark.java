@@ -5,14 +5,14 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 /**
  * @author Luca Garulli
  */
-public class DatabaseAbstractBenchmark extends AbstractBenchmark<ODatabaseDocumentTx> {
+public class AbstractDatabaseBenchmark extends AbstractBenchmark<ODatabaseDocumentTx> {
   private ODatabaseDocumentTx database;
 
-  protected DatabaseAbstractBenchmark(final String iTestName, final long iTotalItems) {
+  protected AbstractDatabaseBenchmark(final String iTestName, final long iTotalItems) {
     super(iTestName, iTotalItems);
   }
 
-  public DatabaseAbstractBenchmark(final String iTestName) {
+  public AbstractDatabaseBenchmark(final String iTestName) {
     super(iTestName);
   }
 

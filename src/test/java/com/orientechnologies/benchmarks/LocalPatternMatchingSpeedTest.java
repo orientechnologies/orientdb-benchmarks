@@ -19,14 +19,14 @@
  */
 package com.orientechnologies.benchmarks;
 
-import com.orientechnologies.benchmarks.base.GraphNoTxAbstractBenchmark;
+import com.orientechnologies.benchmarks.base.AbstractGraphNoTxBenchmark;
 import com.orientechnologies.orient.core.OConstants;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 
-public class LocalPatternMatchingSpeedTest extends GraphNoTxAbstractBenchmark {
+public class LocalPatternMatchingSpeedTest extends AbstractGraphNoTxBenchmark {
   public LocalPatternMatchingSpeedTest() {
     super("PatternMatching", 50000);
   }
