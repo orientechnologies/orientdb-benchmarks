@@ -50,6 +50,9 @@ public abstract class AbstractBenchmark<T> extends TestCase {
   private final Map<String, Data> steps             = new ConcurrentHashMap<String, Data>();
   private PrintStream             out               = System.out;
 
+  private long                    beginStepTotalRAM;
+  private long                    beginStepFreeRAM;
+
   private static final int        CONCURRENCY_LEVEL = Runtime.getRuntime().availableProcessors();
   private static final int        DEF_ITEMS         = 1000000;
 
@@ -140,7 +143,12 @@ public abstract class AbstractBenchmark<T> extends TestCase {
 
     lastStepName = iName;
 
-    out.printf("\n+ STARTED STEP: %s (%s)\n", iName, getRAMStatistics());
+    out.printf("\n\n+----------------------------------------------------------------------------------------------------------------------+");
+    out.printf("\n| STEP: %-110s |", iName + " RAM(" + getRAMStatistics() + ")");
+    out.printf("\n+----------------------------------------------------------------------------------------------------------------------+");
+
+    beginStepTotalRAM = Runtime.getRuntime().totalMemory();
+    beginStepFreeRAM = Runtime.getRuntime().freeMemory();
 
     final Data step = new Data(iTotalItems);
     steps.put(iName, step);
@@ -161,10 +169,21 @@ public abstract class AbstractBenchmark<T> extends TestCase {
 
     recordRAM();
 
-    out.printf("\n+ COMPLETED STEP: %s in %,dms (%s)\n", lastStepName, step.elapsed, getRAMStatistics());
+    out.printf("\n| COMPLETED STEP in %,dms RAM%-87s |", step.elapsed, "(" + getRAMStatistics() + ")");
+    out.printf("\n+----------------------------------------------------------------------------------------------------------------------+");
+
+    final long tot = Runtime.getRuntime().totalMemory();
+    final long free = Runtime.getRuntime().freeMemory();
+
+    out.printf("\n+--> DELTA: used=%s total=%s free=%s",
+        OFileUtils.getSizeAsString((tot - free) - (beginStepTotalRAM - beginStepFreeRAM)),
+        OFileUtils.getSizeAsString(tot - beginStepTotalRAM), OFileUtils.getSizeAsString(free - beginStepFreeRAM));
+
     System.gc();
+    out.printf("\n\nWaiting for the next step...");
+
     try {
-      Thread.sleep(1000);
+      Thread.sleep(2000);
     } catch (InterruptedException e) {
     }
 
