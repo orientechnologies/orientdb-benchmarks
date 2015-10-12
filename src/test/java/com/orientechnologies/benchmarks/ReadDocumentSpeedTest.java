@@ -20,14 +20,13 @@
 package com.orientechnologies.benchmarks;
 
 import com.orientechnologies.benchmarks.base.AbstractDocumentBenchmark;
-import com.orientechnologies.orient.core.command.OCommandResultListener;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.record.impl.ODocument;
-import com.orientechnologies.orient.core.sql.query.OSQLAsynchQuery;
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import org.junit.Assert;
 
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.List;
 
 public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
   public ReadDocumentSpeedTest() {
@@ -44,7 +43,7 @@ public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
       step("createOneCluster10Props", new Step() {
         @Override
         public void execute(final long items) {
-          createMultipleClusters(db, items, 8, 5, 5, 20);
+          createOneCluster(db, items, 5, 5, 20);
         }
       });
       step("createMultipleClusters50BigProps", new Step() {
@@ -67,22 +66,17 @@ public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
           scanOneCluster(db, items);
         }
       });
-      step("scanOneClusterAccessProperties", new Step() {
+      step("scanOneClusterAccessAllProperties", new Step() {
         @Override
         public void execute(final long items) {
-          scanOneClusterAccessProperties(db, items);
+          scanOneClusterAccessAllProperties(db, items);
         }
       });
-      step("queryOneCluster", new Step() {
+
+      step("queryOneClusterReadOneProperty", new Step() {
         @Override
         public void execute(final long items) {
-          queryOneCluster(db, items);
-        }
-      });
-      step("queryOneClusterAccessProperties", new Step() {
-        @Override
-        public void execute(final long items) {
-          queryOneClusterAccessProperties(db, items);
+          queryOneClusterReadOneProperty(db, items);
         }
       });
 
@@ -103,23 +97,11 @@ public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
           scanMultipleClustersAccessAllProperties(db, items);
         }
       });
-      step("queryMultipleClusters", new Step() {
-        @Override
-        public void execute(final long items) {
-          queryMultipleClusters(db, items);
-        }
-      });
-      step("queryMultipleClustersAccessAllProperties", new Step() {
-        @Override
-        public void execute(final long items) {
-          queryMultipleClustersAccessAllProperties(db, items);
-        }
-      });
 
-      step("queryMultipleClustersCountOneProperty", new Step() {
+      step("queryMultipleClustersReadOneProperty", new Step() {
         @Override
         public void execute(final long items) {
-          queryMultipleClustersCountOneProperty(db, items);
+          queryMultipleClustersReadOneProperty(db, items);
         }
       });
       step("queryMultipleClustersReadSomeProperties", new Step() {
@@ -140,10 +122,10 @@ public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
     for (ODocument doc : db.browseClass("OneCluster")) {
       total++;
     }
-    Assert.assertEquals(total, items);
+    Assert.assertEquals(items, total);
   }
 
-  protected void scanOneClusterAccessProperties(final ODatabaseDocumentTx db, long items) {
+  protected void scanOneClusterAccessAllProperties(final ODatabaseDocumentTx db, long items) {
     long total = 0;
     for (ODocument doc : db.browseClass("OneCluster")) {
       doc.deserializeFields();
@@ -152,49 +134,9 @@ public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
     Assert.assertEquals(total, items);
   }
 
-  protected void queryOneCluster(final ODatabaseDocumentTx db, long items) {
-    final AtomicLong total = new AtomicLong(0);
-    db.query(new OSQLAsynchQuery<ODocument>("select from OneCluster", new OCommandResultListener() {
-      @Override
-      public boolean result(Object iRecord) {
-        total.incrementAndGet();
-        return true;
-      }
-
-      @Override
-      public void end() {
-      }
-
-      @Override
-      public Object getResult() {
-        return null;
-      }
-    }));
-
-    Assert.assertEquals(total.longValue(), items);
-  }
-
-  protected void queryOneClusterAccessProperties(final ODatabaseDocumentTx db, long items) {
-    final AtomicLong total = new AtomicLong(0);
-    db.query(new OSQLAsynchQuery<ODocument>("select from OneCluster", new OCommandResultListener() {
-      @Override
-      public boolean result(Object iRecord) {
-        ((ODocument) iRecord).deserializeFields();
-        total.incrementAndGet();
-        return true;
-      }
-
-      @Override
-      public void end() {
-      }
-
-      @Override
-      public Object getResult() {
-        return null;
-      }
-    }));
-
-    Assert.assertEquals(total.longValue(), items);
+  protected void queryOneClusterReadOneProperty(final ODatabaseDocumentTx db, long items) {
+    final List<?> result = db.query(new OSQLSynchQuery<ODocument>("select from OneCluster where name <> 'test'"));
+    Assert.assertEquals(0, result.size());
   }
 
   protected void scanMultipleClusters(final ODatabaseDocumentTx db, long items) {
@@ -202,7 +144,7 @@ public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
     for (ODocument doc : db.browseClass("MultipleClusters")) {
       total++;
     }
-    Assert.assertEquals(total, items);
+    Assert.assertEquals(items, total);
   }
 
   protected void scanMultipleClustersAccessAllProperties(final ODatabaseDocumentTx db, long items) {
@@ -211,100 +153,18 @@ public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
       doc.deserializeFields();
       total++;
     }
-    Assert.assertEquals(total, items);
+    Assert.assertEquals(items, total);
   }
 
-  protected void queryMultipleClusters(final ODatabaseDocumentTx db, long items) {
-    final AtomicLong total = new AtomicLong(0);
-    db.query(new OSQLAsynchQuery<ODocument>("select from MultipleClusters", new OCommandResultListener() {
-      @Override
-      public boolean result(Object iRecord) {
-        total.incrementAndGet();
-        return true;
-      }
-
-      @Override
-      public void end() {
-      }
-
-      @Override
-      public Object getResult() {
-        return null;
-      }
-    }));
-
-    Assert.assertEquals(total.longValue(), items);
-  }
-
-  protected void queryMultipleClustersAccessAllProperties(final ODatabaseDocumentTx db, long items) {
-    final AtomicLong total = new AtomicLong(0);
-    db.query(new OSQLAsynchQuery<ODocument>("select from MultipleClusters", new OCommandResultListener() {
-      @Override
-      public boolean result(Object iRecord) {
-        ((ODocument) iRecord).deserializeFields();
-        total.incrementAndGet();
-        return true;
-      }
-
-      @Override
-      public void end() {
-      }
-
-      @Override
-      public Object getResult() {
-        return null;
-      }
-    }));
-
-    Assert.assertEquals(total.longValue(), items);
-  }
-
-  protected void queryMultipleClustersCountOneProperty(final ODatabaseDocumentTx db, long items) {
-    final AtomicLong total = new AtomicLong(0);
-    db.query(new OSQLAsynchQuery<ODocument>("select from MultipleClusters where name = 'test'", new OCommandResultListener() {
-      @Override
-      public boolean result(Object iRecord) {
-        ((ODocument) iRecord).deserializeFields();
-        total.incrementAndGet();
-        return true;
-      }
-
-      @Override
-      public void end() {
-      }
-
-      @Override
-      public Object getResult() {
-        return null;
-      }
-    }));
-
-    Assert.assertEquals(total.longValue(), items);
+  protected void queryMultipleClustersReadOneProperty(final ODatabaseDocumentTx db, long items) {
+    final List<?> result = db.query(new OSQLSynchQuery<ODocument>("select from MultipleClusters where name <> 'test'"));
+    Assert.assertEquals(result.size(), 0);
   }
 
   protected void queryMultipleClustersReadSomeProperties(final ODatabaseDocumentTx db, long items) {
-    final AtomicLong total = new AtomicLong(0);
-    final String str = createStringValue(10);
-    db.query(new OSQLAsynchQuery<ODocument>(
-        "select from MultipleClusters where longValue0 < 10 or longValue1 < 1000 or stringField0 <> '" + str + "Z'",
-        new OCommandResultListener() {
-          @Override
-          public boolean result(Object iRecord) {
-            ((ODocument) iRecord).deserializeFields();
-            total.incrementAndGet();
-            return true;
-          }
+    final List<?> result = db.query(new OSQLSynchQuery<ODocument>(
+        "select from MultipleClusters where key < 10 or longField0 < 20 or longField1 < 100"));
 
-          @Override
-          public void end() {
-          }
-
-          @Override
-          public Object getResult() {
-            return null;
-          }
-        }));
-
-    Assert.assertEquals(total.longValue(), items);
+    Assert.assertEquals(100, result.size());
   }
 }

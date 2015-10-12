@@ -66,8 +66,9 @@ public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
   protected ODocument createDocument(String clsName, long i, int iLongFields, int iStringFields, String strValue) {
     final ODocument doc = new ODocument(clsName);
     doc.fields("name", "test", "key", i);
+
     for (int f = 0; f < iLongFields; f++)
-      doc.field("longField" + f, f);
+      doc.field("longField" + f, i);
 
     for (int f = 0; f < iStringFields; f++)
       doc.field("stringField" + f, strValue);
