@@ -3,7 +3,6 @@ package com.orientechnologies.benchmarks.base;
 import com.orientechnologies.common.io.OFileUtils;
 import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.orient.core.OConstants;
-import com.orientechnologies.orient.core.Orient;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.record.impl.ODocument;
@@ -16,7 +15,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -64,12 +62,12 @@ public abstract class AbstractBenchmark<T> extends TestCase {
         .availableProcessors());
     out.printf("\nSTARTED TEST: %s\n", name);
 
-    Orient.instance().scheduleTask(new TimerTask() {
-      @Override
-      public void run() {
-        recordRAM();
-      }
-    }, 1000, 1000);
+//    Orient.instance().scheduleTask(new TimerTask() {
+//      @Override
+//      public void run() {
+//        recordRAM();
+//      }
+//    }, 1000, 1000);
   }
 
   public AbstractBenchmark(final String iTestName) {

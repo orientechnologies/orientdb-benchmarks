@@ -21,7 +21,6 @@ package com.orientechnologies.benchmarks.base;
 
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
-import com.orientechnologies.orient.core.metadata.schema.OClassImpl;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 
 public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
@@ -48,7 +47,7 @@ public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
   protected void createMultipleClusters(final ODatabaseDocumentTx db, final long items, final String iClassName,
       final int iConcurrencyLevel, final int iLongFields, final int iStringFields, final int iStringSize) {
     final OClass cls = db.getMetadata().getSchema().createClass(iClassName);
-    OClassImpl.addClusters(cls, iConcurrencyLevel);
+//    OClassImpl.addClusters(cls, iConcurrencyLevel);
 
     executeMultiThreads(iConcurrencyLevel, items, new ThreadOperation<ODatabaseDocumentTx>() {
       @Override

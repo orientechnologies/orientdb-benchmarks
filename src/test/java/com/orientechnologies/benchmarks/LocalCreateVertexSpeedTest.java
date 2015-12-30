@@ -19,18 +19,17 @@
  */
 package com.orientechnologies.benchmarks;
 
-import com.orientechnologies.benchmarks.base.AbstractGraphNoTxBenchmark;
+import com.orientechnologies.benchmarks.base.AbstractGraphBenchmark;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
-import com.orientechnologies.orient.core.metadata.schema.OClassImpl;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 
-public class LocalCreateVertexSpeedTest extends AbstractGraphNoTxBenchmark {
+public class LocalCreateVertexSpeedTest extends AbstractGraphBenchmark {
   public LocalCreateVertexSpeedTest() {
     super("Vertices");
   }
 
   public void test() {
-    final OrientBaseGraph graph = createGraph();
+    final OrientBaseGraph graph = createGraphNoTx();
 
     step("createOneCluster", new Step() {
       @Override
@@ -65,7 +64,7 @@ public class LocalCreateVertexSpeedTest extends AbstractGraphNoTxBenchmark {
 
   protected void createMultipleCluster(final OrientBaseGraph graph, final long items) {
     final OClass cls = graph.createVertexType("MultipleCluster");
-    OClassImpl.addClusters(cls, 8);
+    // OClassImpl.addClusters(cls, 8);
 
     for (int i = 0; i < items; ++i) {
       graph.addVertex("class:MultipleCluster", "name", "test", "key", i);
@@ -74,7 +73,7 @@ public class LocalCreateVertexSpeedTest extends AbstractGraphNoTxBenchmark {
 
   protected void createMultipleClusterMassiveInsert(final OrientBaseGraph graph, final long items) {
     final OClass cls = graph.createVertexType("MultipleClusterMassiveInsert");
-    OClassImpl.addClusters(cls, 8);
+    // OClassImpl.addClusters(cls, 8);
 
     for (int i = 0; i < items; ++i) {
       graph.addVertex("class:MultipleClusterMassiveInsert", "name", "test", "key", i);

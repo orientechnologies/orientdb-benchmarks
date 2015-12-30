@@ -19,7 +19,11 @@
  */
 package com.orientechnologies.benchmarks;
 
-import com.orientechnologies.benchmarks.base.AbstractGraphNoTxBenchmark;
+import java.util.concurrent.atomic.AtomicLong;
+
+import junit.framework.Assert;
+
+import com.orientechnologies.benchmarks.base.AbstractGraphBenchmark;
 import com.orientechnologies.common.log.OLogManager;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
@@ -27,11 +31,8 @@ import com.orientechnologies.orient.core.metadata.schema.OClassImpl;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
-import junit.framework.Assert;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-public class LocalTraversalSpeedTest extends AbstractGraphNoTxBenchmark {
+public class LocalTraversalSpeedTest extends AbstractGraphBenchmark {
   private OrientVertex root;
   private AtomicLong   counter = new AtomicLong();
 
@@ -40,7 +41,7 @@ public class LocalTraversalSpeedTest extends AbstractGraphNoTxBenchmark {
   }
 
   public void test() {
-    final OrientBaseGraph graph = createGraph();
+    final OrientBaseGraph graph = createGraphNoTx();
 
     step("populate", new Step() {
       @Override
@@ -60,8 +61,8 @@ public class LocalTraversalSpeedTest extends AbstractGraphNoTxBenchmark {
   }
 
   protected void traverseSpeed(final OrientBaseGraph graph, final long items) {
-    Iterable<OrientVertex> result = (Iterable<OrientVertex>) graph.command(new OCommandSQL(
-        "select count(*) from ( traverse out() from " + root.getIdentity() + ")"));
+    Iterable<OrientVertex> result = (Iterable<OrientVertex>) graph
+        .command(new OCommandSQL("select count(*) from ( traverse out() from " + root.getIdentity() + ")"));
     final Number count = result.iterator().next().getProperty("count");
 
     Assert.assertEquals(count.longValue(), counter.longValue());
@@ -85,7 +86,7 @@ public class LocalTraversalSpeedTest extends AbstractGraphNoTxBenchmark {
   }
 
   protected void populate(final OrientBaseGraph graph, final long maxItems) {
-    // graph.setKeepInMemoryReferences(true);
+    graph.setKeepInMemoryReferences(true);
     graph.declareIntent(new OIntentMassiveInsert());
     final OClass cls = graph.createVertexType("Node");
     OClassImpl.addClusters(cls, 8);
@@ -93,7 +94,7 @@ public class LocalTraversalSpeedTest extends AbstractGraphNoTxBenchmark {
     graph.createEdgeType("Child");
 
     root = graph.addVertex("class:Node", "level", 0, "childNum", 0);
-    addNodes(graph, root, 100, 0, 10, counter, maxItems);
+    addNodes(graph, root, 20, 0, 8, counter, maxItems);
     graph.declareIntent(null);
   }
 }
