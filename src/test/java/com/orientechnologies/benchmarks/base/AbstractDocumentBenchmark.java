@@ -46,7 +46,7 @@ public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
 
   protected void createMultipleClusters(final ODatabaseDocumentTx db, final long items, final String iClassName,
       final int iConcurrencyLevel, final int iLongFields, final int iStringFields, final int iStringSize) {
-    final OClass cls = db.getMetadata().getSchema().createClass(iClassName);
+    final OClass cls = db.getMetadata().getSchema().getOrCreateClass(iClassName);
 //    OClassImpl.addClusters(cls, iConcurrencyLevel);
 
     executeMultiThreads(iConcurrencyLevel, items, new ThreadOperation<ODatabaseDocumentTx>() {
