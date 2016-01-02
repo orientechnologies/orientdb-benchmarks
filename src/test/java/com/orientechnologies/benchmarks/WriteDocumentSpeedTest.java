@@ -64,14 +64,6 @@ public class WriteDocumentSpeedTest extends AbstractDocumentBenchmark {
           db.declareIntent(null);
         }
       });
-      step("createMultipleClusters8MassiveInsert", new Step() {
-        @Override
-        public void execute(final long items) {
-          db.declareIntent(new OIntentMassiveInsert());
-          createMultipleClusters(db, items, 8, 1, 0, 0);
-          db.declareIntent(null);
-        }
-      });
       step("createMultipleClusters16MassiveInsert", new Step() {
         @Override
         public void execute(final long items) {
