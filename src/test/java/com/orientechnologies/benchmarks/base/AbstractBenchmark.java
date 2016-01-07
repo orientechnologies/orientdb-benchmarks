@@ -167,7 +167,7 @@ public abstract class AbstractBenchmark<T> extends TestCase {
 
     recordRAM();
 
-    out.printf("\n| COMPLETED STEP in %,dms RAM%-87s |", step.elapsed, "(" + getRAMStatistics() + ")");
+    out.printf("\n| COMPLETED STEP in %,dms RAM%-86s |", step.elapsed, "(" + getRAMStatistics() + ")");
     out.printf("\n+----------------------------------------------------------------------------------------------------------------------+");
 
     final long tot = Runtime.getRuntime().totalMemory();

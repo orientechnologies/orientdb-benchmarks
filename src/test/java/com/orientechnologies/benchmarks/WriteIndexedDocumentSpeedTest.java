@@ -57,6 +57,22 @@ public class WriteIndexedDocumentSpeedTest extends AbstractDocumentBenchmark {
           db.declareIntent(null);
         }
       });
+//
+//      step("createMultipleClustersIndexedAutoSharding8", new Step() {
+//        @Override
+//        public void execute(final long items) {
+//          db.declareIntent(new OIntentMassiveInsert());
+//
+//          final OClass cls = db.getMetadata().getSchema().createClass("MultipleClustersIndexedAutoSharding8");
+//          cls.createProperty("key", OType.LONG);
+//          cls.createIndex("idx_createMultipleClustersIndexedAutoSharding8", OClass.INDEX_TYPE.UNIQUE.toString(),
+//              (OProgressListener) null, (ODocument) null, "AUTOSHARDING", new String[] { "key" });
+//
+//          createMultipleClusters(db, items, "MultipleClustersIndexedAutoSharding8", 8, 1, 0, 0);
+//
+//          db.declareIntent(null);
+//        }
+//      });
 
       dropDatabase();
     }
