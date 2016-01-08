@@ -47,7 +47,7 @@ public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
   protected void createMultipleClusters(final ODatabaseDocumentTx db, final long items, final String iClassName,
       final int iConcurrencyLevel, final int iLongFields, final int iStringFields, final int iStringSize) {
     final OClass cls = db.getMetadata().getSchema().getOrCreateClass(iClassName);
-//    OClassImpl.addClusters(cls, iConcurrencyLevel);
+    // OClassImpl.addClusters(cls, iConcurrencyLevel);
 
     executeMultiThreads(iConcurrencyLevel, items, new ThreadOperation<ODatabaseDocumentTx>() {
       @Override
@@ -56,6 +56,21 @@ public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
 
         for (long i = iFirst; i <= iLast; ++i) {
           final ODocument doc = createDocument(iClassName, i, iLongFields, iStringFields, strValue);
+          doc.save();
+        }
+      }
+    });
+  }
+
+  protected void createMultipleClasses(final ODatabaseDocumentTx db, final long items, final String iClassName,
+      final int iConcurrencyLevel, final int iLongFields, final int iStringFields, final int iStringSize) {
+    executeMultiThreads(iConcurrencyLevel, items, new ThreadOperation<ODatabaseDocumentTx>() {
+      @Override
+      public void execute(final ODatabaseDocumentTx db, final int iThreadId, final long iFirst, final long iLast) {
+        final String strValue = createStringValue(iStringSize);
+
+        for (long i = iFirst; i <= iLast; ++i) {
+          final ODocument doc = createDocument(iClassName + iThreadId, i, iLongFields, iStringFields, strValue);
           doc.save();
         }
       }
