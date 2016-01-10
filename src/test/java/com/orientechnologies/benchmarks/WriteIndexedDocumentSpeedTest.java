@@ -38,59 +38,59 @@ public class WriteIndexedDocumentSpeedTest extends AbstractDocumentBenchmark {
 
       final ODatabaseDocumentTx db = createDatabase();
 
-       step("createMultipleClustersIndexedHash8", new Step() {
-       @Override
-       public void execute(final long items) {
-       db.declareIntent(new OIntentMassiveInsert());
-//       createIndex(db, "MultipleClustersIndexedHash8", OClass.INDEX_TYPE.UNIQUE_HASH_INDEX);
-       createMultipleClusters(db, items, "MultipleClustersIndexedHash8", 8, 1, 0, 0);
-       db.declareIntent(null);
-       }
-       });
-      //
-      // step("createMultipleClustersIndexedSBTree8", new Step() {
-      // @Override
-      // public void execute(final long items) {
-      // db.declareIntent(new OIntentMassiveInsert());
-      // createIndex(db, "MultipleClustersIndexedSBTree8", OClass.INDEX_TYPE.UNIQUE);
-      // createMultipleClusters(db, items, "MultipleClustersIndexedSBTree8", 8, 1, 0, 0);
-      // db.declareIntent(null);
-      // }
-      // });
-      //
-      // step("createMultipleClustersIndexedAutoSharding8", new Step() {
-      // @Override
-      // public void execute(final long items) {
-      // db.declareIntent(new OIntentMassiveInsert());
-      //
-      // final OClass cls = db.getMetadata().getSchema().createClass("MultipleClustersIndexedAutoSharding8");
-      // cls.createProperty("key", OType.LONG);
-      // cls.createIndex("idx_createMultipleClustersIndexedAutoSharding8", OClass.INDEX_TYPE.UNIQUE.toString(),
-      // (OProgressListener) null, (ODocument) null, "AUTOSHARDING", new String[] { "key" });
-      //
-      // createMultipleClusters(db, items, "MultipleClustersIndexedAutoSharding8", 8, 1, 0, 0);
-      //
-      // db.declareIntent(null);
-      // }
-      // });
-//
-//      step("createMultipleClassesIndexedSBTree1", new Step() {
+      step("createMultipleClustersIndexedHash8", new Step() {
+        @Override
+        public void execute(final long items) {
+          db.declareIntent(new OIntentMassiveInsert());
+          createIndex(db, "MultipleClustersIndexedHash8", OClass.INDEX_TYPE.UNIQUE_HASH_INDEX);
+          createMultipleClusters(db, items, "MultipleClustersIndexedHash8", 8, 1, 0, 0);
+          db.declareIntent(null);
+        }
+      });
+
+      step("createMultipleClustersIndexedSBTree8", new Step() {
+        @Override
+        public void execute(final long items) {
+          db.declareIntent(new OIntentMassiveInsert());
+          createIndex(db, "MultipleClustersIndexedSBTree8", OClass.INDEX_TYPE.UNIQUE);
+          createMultipleClusters(db, items, "MultipleClustersIndexedSBTree8", 1, 2, 2, 2);
+          db.declareIntent(null);
+        }
+      });
+
+      step("createMultipleClassesIndexedSBTree1", new Step() {
+        @Override
+        public void execute(final long items) {
+          db.declareIntent(new OIntentMassiveInsert());
+          createIndexes(db, "MultipleClustersIndexedSBTree1", OClass.INDEX_TYPE.UNIQUE, 1);
+          createMultipleClasses(db, items, "MultipleClustersIndexedSBTree1", 1, 1, 0, 0);
+          db.declareIntent(null);
+        }
+      });
+
+      step("createMultipleClassesIndexedSBTree8", new Step() {
+        @Override
+        public void execute(final long items) {
+          db.declareIntent(new OIntentMassiveInsert());
+          createIndexes(db, "MultipleClustersIndexedSBTree8", OClass.INDEX_TYPE.UNIQUE, 8);
+          createMultipleClasses(db, items, "MultipleClustersIndexedSBTree8", 8, 1, 0, 0);
+          db.declareIntent(null);
+        }
+      });
+
+//      // ENABLE THIS ONLY IN AUTOSHARDING-INDEX BRANCH
+//      step("createMultipleClustersIndexedAutoSharding8", new Step() {
 //        @Override
 //        public void execute(final long items) {
 //          db.declareIntent(new OIntentMassiveInsert());
-//          createIndexes(db, "MultipleClustersIndexedSBTree1", OClass.INDEX_TYPE.UNIQUE, 1);
-//          createMultipleClasses(db, items, "MultipleClustersIndexedSBTree1", 1, 1, 0, 0);
-//          db.declareIntent(null);
-//        }
-//      });
 //
+//          final OClass cls = db.getMetadata().getSchema().createClass("MultipleClustersIndexedAutoSharding8");
+//          cls.createProperty("key", OType.LONG);
+//          cls.createIndex("idx_createMultipleClustersIndexedAutoSharding8", OClass.INDEX_TYPE.UNIQUE.toString(),
+//              (OProgressListener) null, (ODocument) null, "AUTOSHARDING", new String[] { "key" });
 //
-//      step("createMultipleClassesIndexedSBTree8", new Step() {
-//        @Override
-//        public void execute(final long items) {
-//          db.declareIntent(new OIntentMassiveInsert());
-//          createIndexes(db, "MultipleClustersIndexedSBTree8", OClass.INDEX_TYPE.UNIQUE, 8);
-//          createMultipleClasses(db, items, "MultipleClustersIndexedSBTree8", 8, 1, 0, 0);
+//          createMultipleClusters(db, items, "MultipleClustersIndexedAutoSharding8", 8, 1, 0, 0);
+//
 //          db.declareIntent(null);
 //        }
 //      });
