@@ -45,29 +45,30 @@ public abstract class AbstractBenchmark<T> extends TestCase {
   private final String            name;
   private final Data              data;
   private volatile String         lastStepName;
-  private final Map<String, Data> steps             = new ConcurrentHashMap<String, Data>();
-  private PrintStream             out               = System.out;
+  private final Map<String, Data> steps      = new ConcurrentHashMap<String, Data>();
+  private PrintStream             out        = System.out;
+  private boolean                 exportData = false;
 
-  private long                    beginStepTotalRAM;
-  private long                    beginStepFreeRAM;
+  private long beginStepTotalRAM;
+  private long beginStepFreeRAM;
 
-  private static final int        CONCURRENCY_LEVEL = Runtime.getRuntime().availableProcessors();
-  private static final int        DEF_ITEMS         = 1000000;
+  private static final int CONCURRENCY_LEVEL = Runtime.getRuntime().availableProcessors();
+  private static final int DEF_ITEMS         = 1000000;
 
   protected AbstractBenchmark(final String iTestName, final long iTotalItems) {
     this.name = iTestName;
     this.data = new Data(iTotalItems);
 
-    out.printf("\nORIENTDB BENCHMARK SUITE [OrientDB v.%s - CPUs: %d]", OConstants.getVersion(), Runtime.getRuntime()
-        .availableProcessors());
+    out.printf("\nORIENTDB BENCHMARK SUITE [OrientDB v.%s - CPUs: %d]", OConstants.getVersion(),
+        Runtime.getRuntime().availableProcessors());
     out.printf("\nSTARTED TEST: %s\n", name);
 
-//    Orient.instance().scheduleTask(new TimerTask() {
-//      @Override
-//      public void run() {
-//        recordRAM();
-//      }
-//    }, 1000, 1000);
+    // Orient.instance().scheduleTask(new TimerTask() {
+    // @Override
+    // public void run() {
+    // recordRAM();
+    // }
+    // }, 1000, 1000);
   }
 
   public AbstractBenchmark(final String iTestName) {
@@ -141,9 +142,11 @@ public abstract class AbstractBenchmark<T> extends TestCase {
 
     lastStepName = iName;
 
-    out.printf("\n\n+----------------------------------------------------------------------------------------------------------------------+");
+    out.printf(
+        "\n\n+----------------------------------------------------------------------------------------------------------------------+");
     out.printf("\n| STEP: %-110s |", iName + " RAM(" + getRAMStatistics() + ")");
-    out.printf("\n+----------------------------------------------------------------------------------------------------------------------+");
+    out.printf(
+        "\n+----------------------------------------------------------------------------------------------------------------------+");
 
     beginStepTotalRAM = Runtime.getRuntime().totalMemory();
     beginStepFreeRAM = Runtime.getRuntime().freeMemory();
@@ -168,7 +171,8 @@ public abstract class AbstractBenchmark<T> extends TestCase {
     recordRAM();
 
     out.printf("\n| COMPLETED STEP in %,dms RAM%-86s |", step.elapsed, "(" + getRAMStatistics() + ")");
-    out.printf("\n+----------------------------------------------------------------------------------------------------------------------+");
+    out.printf(
+        "\n+----------------------------------------------------------------------------------------------------------------------+");
 
     final long tot = Runtime.getRuntime().totalMemory();
     final long free = Runtime.getRuntime().freeMemory();
@@ -225,6 +229,9 @@ public abstract class AbstractBenchmark<T> extends TestCase {
   }
 
   protected void export() {
+    if (!exportData)
+      return;
+
     final ODatabaseDocumentTx database = new ODatabaseDocumentTx("plocal:./export/benchmark");
 
     try {
