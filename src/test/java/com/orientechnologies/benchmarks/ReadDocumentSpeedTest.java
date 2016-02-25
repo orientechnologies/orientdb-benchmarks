@@ -25,6 +25,7 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.record.impl.ODocument;
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class ReadDocumentSpeedTest extends AbstractDocumentBenchmark {
     super("Documents");
   }
 
+  @Test
   public void test() {
     {
       // NO WAL

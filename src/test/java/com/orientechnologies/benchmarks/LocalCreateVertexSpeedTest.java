@@ -22,12 +22,14 @@ package com.orientechnologies.benchmarks;
 import com.orientechnologies.benchmarks.base.AbstractGraphBenchmark;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
+import org.junit.Test;
 
 public class LocalCreateVertexSpeedTest extends AbstractGraphBenchmark {
   public LocalCreateVertexSpeedTest() {
     super("Vertices");
   }
 
+  @Test
   public void test() {
     final OrientBaseGraph graph = createGraphNoTx();
 

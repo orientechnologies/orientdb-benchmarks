@@ -26,6 +26,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientGraphNoTx;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,6 +35,7 @@ public class LocalCreateEdgeSpeedTest extends AbstractGraphBenchmark {
     super("Edges", 100000);
   }
 
+  @Test
   public void test() {
 
     // TX

@@ -23,12 +23,14 @@ import com.orientechnologies.benchmarks.base.AbstractDocumentBenchmark;
 import com.orientechnologies.orient.core.config.OGlobalConfiguration;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
+import org.junit.Test;
 
 public class WriteDocumentSpeedTest extends AbstractDocumentBenchmark {
   public WriteDocumentSpeedTest() {
     super("Documents");
   }
 
+  @Test
   public void test() {
     {
       // USE WAL

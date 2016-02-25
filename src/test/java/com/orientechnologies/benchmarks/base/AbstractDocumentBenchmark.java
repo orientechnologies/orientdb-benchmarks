@@ -19,6 +19,7 @@
  */
 package com.orientechnologies.benchmarks.base;
 
+import com.orientechnologies.orient.core.db.document.ODatabaseDocument;
 import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.record.impl.ODocument;
@@ -28,7 +29,11 @@ public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
     super(iName);
   }
 
-  protected void createOneCluster(final ODatabaseDocumentTx db, final long items, final int iLongFields, final int iStringFields,
+  public AbstractDocumentBenchmark(String iName, long items) {
+    super(iName, items);
+  }
+
+  protected void createOneCluster(final ODatabaseDocument db, final long items, final int iLongFields, final int iStringFields,
       final int iStringSize) {
     db.getMetadata().getSchema().createClass("OneCluster");
 
@@ -39,12 +44,12 @@ public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
     }
   }
 
-  protected void createMultipleClusters(final ODatabaseDocumentTx db, final long items, final int iConcurrencyLevel,
+  protected void createMultipleClusters(final ODatabaseDocument db, final long items, final int iConcurrencyLevel,
       final int iLongFields, final int iStringFields, final int iStringSize) {
     createMultipleClusters(db, items, "MultipleClusters", iConcurrencyLevel, iLongFields, iStringFields, iStringSize);
   }
 
-  protected void createMultipleClusters(final ODatabaseDocumentTx db, final long items, final String iClassName,
+  protected void createMultipleClusters(final ODatabaseDocument db, final long items, final String iClassName,
       final int iConcurrencyLevel, final int iLongFields, final int iStringFields, final int iStringSize) {
     final OClass cls = db.getMetadata().getSchema().getOrCreateClass(iClassName);
     // OClassImpl.addClusters(cls, iConcurrencyLevel);
@@ -62,7 +67,7 @@ public class AbstractDocumentBenchmark extends AbstractDatabaseBenchmark {
     });
   }
 
-  protected void createMultipleClasses(final ODatabaseDocumentTx db, final long items, final String iClassName,
+  protected void createMultipleClasses(final ODatabaseDocument db, final long items, final String iClassName,
       final int iConcurrencyLevel, final int iLongFields, final int iStringFields, final int iStringSize) {
     executeMultiThreads(iConcurrencyLevel, items, new ThreadOperation<ODatabaseDocumentTx>() {
       @Override

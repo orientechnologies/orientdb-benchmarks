@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Luca Garulli
  */
-public abstract class AbstractBenchmark<T> extends TestCase {
+public abstract class AbstractBenchmark<T>  {
 
   public class Data {
     private final long         beginTime  = System.currentTimeMillis();
@@ -331,5 +331,9 @@ public abstract class AbstractBenchmark<T> extends TestCase {
 
   protected long getTotalItems() {
     return data.totalItems;
+  }
+
+  public String getName() {
+    return name;
   }
 }

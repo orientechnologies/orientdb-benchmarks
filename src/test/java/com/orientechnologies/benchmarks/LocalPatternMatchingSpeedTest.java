@@ -25,12 +25,14 @@ import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
+import org.junit.Test;
 
 public class LocalPatternMatchingSpeedTest extends AbstractGraphBenchmark {
   public LocalPatternMatchingSpeedTest() {
     super("PatternMatching", 50000);
   }
 
+  @Test
   public void test() {
     String versionString = OConstants.getVersion();
     String[] splitted = versionString.split("\\.");

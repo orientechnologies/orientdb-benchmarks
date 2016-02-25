@@ -25,12 +25,13 @@ import com.orientechnologies.orient.core.db.document.ODatabaseDocumentTx;
 import com.orientechnologies.orient.core.intent.OIntentMassiveInsert;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
+import org.junit.Test;
 
 public class WriteIndexedDocumentSpeedTest extends AbstractDocumentBenchmark {
   public WriteIndexedDocumentSpeedTest() {
     super("IndexedDocuments");
   }
-
+  @Test
   public void test() {
     {
       // USE WAL

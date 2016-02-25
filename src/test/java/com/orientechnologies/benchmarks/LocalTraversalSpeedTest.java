@@ -31,6 +31,7 @@ import com.orientechnologies.orient.core.metadata.schema.OClassImpl;
 import com.orientechnologies.orient.core.sql.OCommandSQL;
 import com.tinkerpop.blueprints.impls.orient.OrientBaseGraph;
 import com.tinkerpop.blueprints.impls.orient.OrientVertex;
+import org.junit.Test;
 
 public class LocalTraversalSpeedTest extends AbstractGraphBenchmark {
   private OrientVertex root;
@@ -40,6 +41,7 @@ public class LocalTraversalSpeedTest extends AbstractGraphBenchmark {
     super("Vertices");
   }
 
+  @Test
   public void test() {
     final OrientBaseGraph graph = createGraphNoTx();
 
