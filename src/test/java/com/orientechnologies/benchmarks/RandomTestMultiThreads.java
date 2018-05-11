@@ -8,6 +8,7 @@ import com.orientechnologies.orient.core.db.ODatabaseType;
 import com.orientechnologies.orient.core.db.OrientDB;
 import com.orientechnologies.orient.core.db.OrientDBConfig;
 import com.orientechnologies.orient.core.exception.OConcurrentModificationException;
+import com.orientechnologies.orient.core.exception.ORecordNotFoundException;
 import com.orientechnologies.orient.core.iterator.ORecordIteratorClass;
 import com.orientechnologies.orient.core.metadata.schema.OClass;
 import com.orientechnologies.orient.core.metadata.schema.OType;
@@ -22,17 +23,19 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class RandomTestMultiThreads {
-  private static final int    CYCLES           = 1_000_000_000;
-  private static final int    STARTING_ACCOUNT = 100;
-  private static final int    PARALLEL         = Runtime.getRuntime().availableProcessors();
-  private static final int    WORKERS          = Runtime.getRuntime().availableProcessors() * 8;
-  private static final String DATABASE_PATH    = "target/databases/random";
+  private static final String DATABASE_PATH = "target/databases/random";
 
-  private final AtomicLong                      total             = new AtomicLong();
-  private final AtomicLong                      totalTransactions = new AtomicLong();
-  private final AtomicLong                      mvccErrors        = new AtomicLong();
-  private final Random                          rnd               = new Random();
-  private final List<OPair<Integer, Exception>> otherErrors       = new ArrayList<>();
+  private static final int CYCLES           = 1000000;
+  private static final int STARTING_ACCOUNT = 10000;
+  private static final int PARALLEL         = Runtime.getRuntime().availableProcessors();
+  private static final int WORKERS          = Runtime.getRuntime().availableProcessors() * 8;
+
+  private final AtomicLong                      total                   = new AtomicLong();
+  private final AtomicLong                      totalTransactionRecords = new AtomicLong();
+  private final AtomicLong                      mvccErrors              = new AtomicLong();
+  private final Random                          rnd                     = new Random();
+  private final AtomicLong                      uuid                    = new AtomicLong();
+  private final List<OPair<Integer, Exception>> otherErrors             = Collections.synchronizedList(new ArrayList<>());
   private       OrientDB                        orient;
 
   @Test
@@ -41,7 +44,6 @@ public class RandomTestMultiThreads {
 
     clean();
     final ODatabaseSession database = createSchema();
-
     populateDatabase(database);
 
     long begin = System.currentTimeMillis();
@@ -53,8 +55,8 @@ public class RandomTestMultiThreads {
         threads[i] = new Thread(new Runnable() {
           @Override
           public void run() {
-            ODatabaseSession db = orient.open("random", "admin", "admin");
-            db.begin();
+            ODatabaseSession threadDatabase = orient.open("random", "admin", "admin");
+            threadDatabase.begin();
 
             long totalTransactionInCurrentTx = 0;
 
@@ -64,55 +66,111 @@ public class RandomTestMultiThreads {
                 break;
 
               try {
-                final int op = rnd.nextInt(6);
-
-                if (i % 10000 == 0)
+                final int op = rnd.nextInt(100);
+                if (i % 5000 == 0)
                   OLogManager.instance()
                       .info(this, "Operations %d/%d totalTransactionInCurrentTx=%d totalTransactions=%d (thread=%d)", i, CYCLES,
-                          totalTransactionInCurrentTx, totalTransactions.get(), threadId);
+                          totalTransactionInCurrentTx, totalTransactionRecords.get(), threadId);
 
                 OLogManager.instance().debug(this, "Operation %d %d/%d (thread=%d)", op, i, CYCLES, threadId);
 
-                if (op >= 0 && op <= 2) {
+                if (op >= 0 && op <= 19) {
                   final int txOps = rnd.nextInt(10);
                   OLogManager.instance().debug(this, "Creating %d transactions (thread=%d)...", txOps, threadId);
-                  createTransactions(database, txOps);
+
+                  createTransactions(threadDatabase, txOps);
                   totalTransactionInCurrentTx += txOps;
-                } else if (op >= 3 && op <= 5) {
-                  OLogManager.instance().debug(this, "Querying Account records (thread=%d)...", threadId);
+
+                } else if (op >= 20 && op <= 39) {
+                  OLogManager.instance().debug(this, "Querying Account by index records (thread=%d)...", threadId);
 
                   final Map<String, Object> map = new HashMap<>();
-                  map.put(":limit", rnd.nextInt(100) + 1);
+                  map.put(":id", rnd.nextInt(10000) + 1);
 
-                  final OResultSet result = database.query("select from Account limit :limit", map);
+                  final OResultSet result = threadDatabase.query("select from Account where id = :id", map);
                   while (result.hasNext()) {
                     final OResult record = result.next();
                     record.toString();
                   }
 
-                } else if (op >= 6 && op <= 7) {
-                  OLogManager.instance().debug(this, "Querying Transaction records (thread=%d)...", threadId);
+                } else if (op >= 40 && op <= 59) {
+                  OLogManager.instance().debug(this, "Querying Transaction by index records (thread=%d)...", threadId);
 
                   final Map<String, Object> map = new HashMap<>();
-                  map.put(":limit", rnd.nextInt((int) totalTransactions.get() + 1) + 1);
+                  map.put(":uuid", rnd.nextInt((int) (totalTransactionRecords.get() + 1)) + 1);
 
-                  final OResultSet result = database.query("select from Transaction limit :limit", map);
+                  final OResultSet result = threadDatabase.query("select from Transaction where uuid = :uuid", map);
+                  while (result.hasNext()) {
+                    final OResult record = result.next();
+                    record.toString();
+                  }
+                } else if (op >= 60 && op <= 64) {
+                  OLogManager.instance().debug(this, "Scanning Account records (thread=%d)...", threadId);
+
+                  final Map<String, Object> map = new HashMap<>();
+                  map.put("limit", rnd.nextInt(100) + 1);
+
+                  final OResultSet result = threadDatabase.query("select from Account limit :limit", map);
                   while (result.hasNext()) {
                     final OResult record = result.next();
                     record.toString();
                   }
 
-                } else if (op == 8) {
+                } else if (op >= 65 && op <= 69) {
+                  OLogManager.instance().debug(this, "Scanning Transaction records (thread=%d)...", threadId);
+
+                  final Map<String, Object> map = new HashMap<>();
+                  map.put("limit", rnd.nextInt((int) totalTransactionRecords.get() + 1) + 1);
+
+                  final OResultSet result = threadDatabase.query("select from Transaction limit :limit", map);
+                  while (result.hasNext()) {
+                    final OResult record = result.next();
+                    record.toString();
+                  }
+
+                } else if (op >= 70 && op <= 74) {
                   OLogManager.instance().debug(this, "Deleting records (thread=%d)...", threadId);
-                  totalTransactionInCurrentTx -= deleteRecords(database, threadId);
-                } else if (op == 9) {
-                  OLogManager.instance().debug(this, "Committing (thread=%d)...", threadId);
-                  database.commit();
 
-                  totalTransactions.addAndGet(totalTransactionInCurrentTx);
+                  totalTransactionInCurrentTx -= deleteRecords(threadDatabase, threadId);
+                } else if (op >= 75 && op <= 84) {
+
+                  OLogManager.instance().debug(this, "Committing (thread=%d)...", threadId);
+                  threadDatabase.commit();
+
+                  totalTransactionRecords.addAndGet(totalTransactionInCurrentTx);
                   totalTransactionInCurrentTx = 0;
 
-                  database.begin();
+                  threadDatabase.begin();
+                } else if (op >= 85 && op <= 94) {
+
+                  OLogManager.instance().debug(this, "Updating records (thread=%d)...", threadId);
+
+                  updateRecords(threadDatabase, threadId);
+                } else if (op >= 95 && op <= 95) {
+                  OLogManager.instance().debug(this, "Counting Transaction records (thread=%d)...", threadId);
+
+                  final long newCounter = threadDatabase.countClass("Transaction", true);
+
+                  if (rnd.nextInt(50) == 0)
+                    OLogManager.instance().info(this, "Found %d Transaction records, ram counter=%d (thread=%d)...", newCounter,
+                        totalTransactionRecords.get(), threadId);
+
+                  totalTransactionInCurrentTx -= deleteRecords(threadDatabase, threadId);
+
+                } else if (op >= 96 && op <= 96) {
+                  OLogManager.instance().debug(this, "Counting account records (thread=%d)...", threadId);
+
+                  final long newCounter = threadDatabase.countClass("Account", true);
+
+                  if (rnd.nextInt(50) == 0)
+                    OLogManager.instance().info(this, "Found %d Account records (thread=%d)...", newCounter, threadId);
+
+                  totalTransactionInCurrentTx -= deleteRecords(threadDatabase, threadId);
+                } else if (op >= 97 && op <= 99) {
+                  //JUST WAIT
+                  final long ms = rnd.nextInt(299) + 1;
+                  OLogManager.instance().debug(this, "Sleeping %d ms (thread=%d)...", ms, threadId);
+                  Thread.sleep(ms);
                 }
 
               } catch (Exception e) {
@@ -125,18 +183,20 @@ public class RandomTestMultiThreads {
                   OLogManager.instance().error(this, "UNEXPECTED ERROR: " + e, e);
                 }
 
-                if (!db.getTransaction().isActive())
-                  db.begin();
+                threadDatabase.activateOnCurrentThread();
+
+                if (!threadDatabase.getTransaction().isActive())
+                  threadDatabase.begin();
               }
             }
 
             try {
-              db.commit();
+              threadDatabase.commit();
             } catch (Exception e) {
               mvccErrors.incrementAndGet();
             }
 
-            db.close();
+            threadDatabase.close();
 
           }
         });
@@ -178,23 +238,63 @@ public class RandomTestMultiThreads {
     }
   }
 
-  private int deleteRecords(final ODatabaseSession database, final int threadId) {
-    if (totalTransactions.get() == 0)
+  private int updateRecords(final ODatabaseSession database, final int threadId) {
+    if (totalTransactionRecords.get() == 0)
       return 0;
 
     final ORecordIteratorClass<ODocument> iter = database.browseClass("Transaction");
 
     // JUMP A RANDOM NUMBER OF RECORD
-    final int jump = rnd.nextInt((int) totalTransactions.get() + 1 / 2);
+    final int jump = rnd.nextInt((int) totalTransactionRecords.get() + 1 / 2);
+    for (int i = 0; i < jump && iter.hasNext(); ++i)
+      iter.next();
+
+    int updated = 0;
+
+    while (iter.hasNext() && rnd.nextInt(10) != 0) {
+      final ODocument doc = iter.next();
+
+      if (rnd.nextInt(2) == 0) {
+        try {
+          Integer val = doc.getProperty("updated");
+          if (val == null)
+            val = 0;
+          doc.setProperty("updated", val + 1);
+
+          if (rnd.nextInt(2) == 1)
+            doc.setProperty("longFieldUpdated", "This is a long field to test the break of pages");
+
+          doc.save();
+
+          updated++;
+
+        } catch (ORecordNotFoundException e) {
+          // OK
+        }
+        OLogManager.instance().debug(this, "Updated record %s (threadId=%d)", doc.getIdentity(), threadId);
+      }
+    }
+
+    return updated;
+  }
+
+  private int deleteRecords(final ODatabaseSession database, final int threadId) {
+    if (totalTransactionRecords.get() == 0)
+      return 0;
+
+    final ORecordIteratorClass<ODocument> iter = database.browseClass("Transaction");
+
+    // JUMP A RANDOM NUMBER OF RECORD
+    final int jump = rnd.nextInt((int) totalTransactionRecords.get() + 1 / 2);
     for (int i = 0; i < jump && iter.hasNext(); ++i)
       iter.next();
 
     int deleted = 0;
 
-    while (iter.hasNext() && rnd.nextInt(10) != 0) {
+    while (iter.hasNext() && rnd.nextInt(20) != 0) {
       final ODocument next = iter.next();
 
-      if (rnd.nextInt(2) == 0) {
+      if (rnd.nextInt(6) != 0) {
         database.delete(next.getIdentity());
         deleted++;
         OLogManager.instance().debug(this, "Deleted record %s (threadId=%d)", next.getIdentity(), threadId);
