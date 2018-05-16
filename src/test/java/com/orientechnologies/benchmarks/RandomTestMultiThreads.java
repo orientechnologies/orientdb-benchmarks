@@ -66,7 +66,7 @@ public class RandomTestMultiThreads {
                 break;
 
               try {
-                final int op = rnd.nextInt(100);
+                final int op = getRandom(100);
                 if (i % 5000 == 0)
                   OLogManager.instance()
                       .info(this, "Operations %d/%d totalTransactionInCurrentTx=%d totalTransactions=%d (thread=%d)", i, CYCLES,
@@ -75,7 +75,7 @@ public class RandomTestMultiThreads {
                 OLogManager.instance().debug(this, "Operation %d %d/%d (thread=%d)", op, i, CYCLES, threadId);
 
                 if (op >= 0 && op <= 19) {
-                  final int txOps = rnd.nextInt(10);
+                  final int txOps = getRandom(10);
                   OLogManager.instance().debug(this, "Creating %d transactions (thread=%d)...", txOps, threadId);
 
                   createTransactions(threadDatabase, txOps);
@@ -85,7 +85,7 @@ public class RandomTestMultiThreads {
                   OLogManager.instance().debug(this, "Querying Account by index records (thread=%d)...", threadId);
 
                   final Map<String, Object> map = new HashMap<>();
-                  map.put(":id", rnd.nextInt(10000) + 1);
+                  map.put(":id", getRandom(10000) + 1);
 
                   final OResultSet result = threadDatabase.query("select from Account where id = :id", map);
                   while (result.hasNext()) {
@@ -97,7 +97,7 @@ public class RandomTestMultiThreads {
                   OLogManager.instance().debug(this, "Querying Transaction by index records (thread=%d)...", threadId);
 
                   final Map<String, Object> map = new HashMap<>();
-                  map.put(":uuid", rnd.nextInt((int) (totalTransactionRecords.get() + 1)) + 1);
+                  map.put(":uuid", getRandom((int) (totalTransactionRecords.get() + 1) / 2) + 1);
 
                   final OResultSet result = threadDatabase.query("select from Transaction where uuid = :uuid", map);
                   while (result.hasNext()) {
@@ -108,7 +108,7 @@ public class RandomTestMultiThreads {
                   OLogManager.instance().debug(this, "Scanning Account records (thread=%d)...", threadId);
 
                   final Map<String, Object> map = new HashMap<>();
-                  map.put("limit", rnd.nextInt(100) + 1);
+                  map.put("limit", getRandom(100));
 
                   final OResultSet result = threadDatabase.query("select from Account limit :limit", map);
                   while (result.hasNext()) {
@@ -120,7 +120,7 @@ public class RandomTestMultiThreads {
                   OLogManager.instance().debug(this, "Scanning Transaction records (thread=%d)...", threadId);
 
                   final Map<String, Object> map = new HashMap<>();
-                  map.put("limit", rnd.nextInt((int) totalTransactionRecords.get() + 1) + 1);
+                  map.put("limit", getRandom((int) totalTransactionRecords.get() + 1));
 
                   final OResultSet result = threadDatabase.query("select from Transaction limit :limit", map);
                   while (result.hasNext()) {
@@ -151,9 +151,9 @@ public class RandomTestMultiThreads {
 
                   final long newCounter = threadDatabase.countClass("Transaction", true);
 
-                  if (rnd.nextInt(50) == 0)
-                    OLogManager.instance().info(this, "Found %d Transaction records, ram counter=%d (thread=%d)...", newCounter,
-                        totalTransactionRecords.get(), threadId);
+//                  if (getRandom(50) == 0)
+                  OLogManager.instance().info(this, "Found %d Transaction records, ram counter=%d (thread=%d)...", newCounter,
+                      totalTransactionRecords.get(), threadId);
 
                   totalTransactionInCurrentTx -= deleteRecords(threadDatabase, threadId);
 
@@ -162,13 +162,13 @@ public class RandomTestMultiThreads {
 
                   final long newCounter = threadDatabase.countClass("Account", true);
 
-                  if (rnd.nextInt(50) == 0)
+                  if (getRandom(50) == 0)
                     OLogManager.instance().info(this, "Found %d Account records (thread=%d)...", newCounter, threadId);
 
                   totalTransactionInCurrentTx -= deleteRecords(threadDatabase, threadId);
                 } else if (op >= 97 && op <= 99) {
                   //JUST WAIT
-                  final long ms = rnd.nextInt(299) + 1;
+                  final long ms = getRandom(299) + 1;
                   OLogManager.instance().debug(this, "Sleeping %d ms (thread=%d)...", ms, threadId);
                   Thread.sleep(ms);
                 }
@@ -228,12 +228,20 @@ public class RandomTestMultiThreads {
     }
   }
 
+  private int getRandom(int bound) {
+    if (bound < 1) {
+      OLogManager.instance().info(this, "Non positive bound: " + bound);
+      bound = 1;
+    }
+    return rnd.nextInt(bound);
+  }
+
   private void createTransactions(final ODatabaseSession database, final int txOps) {
     for (long txId = 0; txId < txOps; ++txId) {
       final OVertex tx = database.newVertex("Transaction");
       tx.setProperty("uuid", UUID.randomUUID().toString());
       tx.setProperty("date", new Date());
-      tx.setProperty("amount", rnd.nextInt(STARTING_ACCOUNT));
+      tx.setProperty("amount", getRandom(STARTING_ACCOUNT));
       tx.save();
     }
   }
@@ -245,23 +253,23 @@ public class RandomTestMultiThreads {
     final ORecordIteratorClass<ODocument> iter = database.browseClass("Transaction");
 
     // JUMP A RANDOM NUMBER OF RECORD
-    final int jump = rnd.nextInt((int) totalTransactionRecords.get() + 1 / 2);
+    final int jump = getRandom(((int) totalTransactionRecords.get() + 1 / 2) + 1);
     for (int i = 0; i < jump && iter.hasNext(); ++i)
       iter.next();
 
     int updated = 0;
 
-    while (iter.hasNext() && rnd.nextInt(10) != 0) {
+    while (iter.hasNext() && getRandom(10) != 0) {
       final ODocument doc = iter.next();
 
-      if (rnd.nextInt(2) == 0) {
+      if (getRandom(2) == 0) {
         try {
           Integer val = doc.getProperty("updated");
           if (val == null)
             val = 0;
           doc.setProperty("updated", val + 1);
 
-          if (rnd.nextInt(2) == 1)
+          if (getRandom(2) == 1)
             doc.setProperty("longFieldUpdated", "This is a long field to test the break of pages");
 
           doc.save();
@@ -285,16 +293,16 @@ public class RandomTestMultiThreads {
     final ORecordIteratorClass<ODocument> iter = database.browseClass("Transaction");
 
     // JUMP A RANDOM NUMBER OF RECORD
-    final int jump = rnd.nextInt((int) totalTransactionRecords.get() + 1 / 2);
+    final int jump = getRandom(((int) totalTransactionRecords.get() + 1 / 2) + 1);
     for (int i = 0; i < jump && iter.hasNext(); ++i)
       iter.next();
 
     int deleted = 0;
 
-    while (iter.hasNext() && rnd.nextInt(20) != 0) {
+    while (iter.hasNext() && getRandom(20) != 0) {
       final ODocument next = iter.next();
 
-      if (rnd.nextInt(6) != 0) {
+      if (getRandom(6) != 0) {
         database.delete(next.getIdentity());
         deleted++;
         OLogManager.instance().debug(this, "Deleted record %s (threadId=%d)", next.getIdentity(), threadId);
@@ -346,6 +354,8 @@ public class RandomTestMultiThreads {
       txType.createProperty("uuid", OType.STRING);
       txType.createProperty("date", OType.DATETIME);
       txType.createProperty("amount", OType.DECIMAL);
+      txType.createProperty("updated", OType.BOOLEAN);
+      txType.createProperty("longFieldUpdated", OType.STRING);
 
       txType.createIndex("Transaction.uuid", OClass.INDEX_TYPE.UNIQUE, "uuid");
 
