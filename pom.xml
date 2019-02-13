@@ -21,7 +21,7 @@
 
     <artifactId>benchmarks</artifactId>
     <groupId>com.orientechnologies</groupId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.14</version>
 
     <dependencies>
         <dependency>
